@@ -6,7 +6,7 @@
     <title>Call a Taxi</title>
     <style>
         body {
-            background: url('/static/taxi-background.jpg') no-repeat center center fixed;
+            background: url('/static/taxi-sign-blurred-city-night-background_181624-17989.jpg') no-repeat center center fixed;
             background-size: cover;
             margin: 0;
             font-family: 'Arial', sans-serif;
@@ -40,7 +40,7 @@
             font-weight: bold;
             font-size: 1rem;
         }
-        .form-group input {
+        .form-group input[type="text"] {
             width: 100%;
             padding: 14px;
             border: 1px solid #ddd;
@@ -53,6 +53,34 @@
         .form-group input:focus {
             border-color: #007bff;
             outline: none;
+        }
+        .taxi-class-group {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .taxi-class-group input[type="radio"] {
+            display: none;
+        }
+        .taxi-class-group label {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: #f9f9f9;
+            margin-right: 10px;
+        }
+        .taxi-class-group label:last-child {
+            margin-right: 0;
+        }
+        .taxi-class-group input[type="radio"]:checked + label {
+            background-color: #007bff;
+            color: #ffffff;
+            border-color: #007bff;
         }
         button {
             width: 100%;
@@ -108,6 +136,22 @@
             <div class="form-group">
                 <label for="destination">Desired Location</label>
                 <input type="text" id="destination" name="destination" placeholder="Enter your destination" required>
+            </div>
+            <div class="form-group">
+                <label for="taxi-class">Choose Taxi Class</label>
+                <div class="taxi-class-group">
+                    <input type="radio" id="casual" name="taxi_class" value="Casual" required>
+                    <label for="casual">Casual</label>
+
+                    <input type="radio" id="business" name="taxi_class" value="Business">
+                    <label for="business">Business</label>
+
+                    <input type="radio" id="business-plus" name="taxi_class" value="Business Plus">
+                    <label for="business-plus">Business Plus</label>
+
+                    <input type="radio" id="fancy" name="taxi_class" value="Fancy">
+                    <label for="fancy">Fancy</label>
+                </div>
             </div>
             <button type="submit">Request Taxi</button>
 
