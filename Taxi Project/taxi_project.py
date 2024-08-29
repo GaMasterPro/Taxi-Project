@@ -1,5 +1,6 @@
 from flask import Flask, request, redirect, url_for, render_template
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql.expression import func
 from djikstra import dijkstra_shortest_path
 
 app = Flask(__name__)
@@ -12,9 +13,12 @@ class User(db.Model):
     password = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(30), unique=True, nullable=False)
 
+
 class Driver(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
+    car = db.Column(db.String(80))
+
 
 class Rides(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -23,7 +27,6 @@ class Rides(db.Model):
     start = db.Column(db.String(120), nullable=False)
     finish = db.Column(db.String(120), nullable=False)
 
-# Example graph
 graph = {
     'A': {'B': 1, 'C': 4},
     'B': {'A': 1, 'C': 2, 'D': 5},
@@ -34,11 +37,10 @@ graph = {
 @app.route('/start', methods=['GET', 'POST'])
 def start():
     if request.method == 'POST':
-        username = request.form.get('username')     # <--------- do this
+        username = request.form.get('username')
         password = request.form.get('password')
 
-        # Check if the user exists with the provided username and password
-        user = User.query.filter_by(username=username, password=password).first()  # <-------- do this
+        user = User.query.filter_by(username=username, password=password).first()
         if user:
             return redirect(url_for('call_taxi'))
         else:
@@ -79,11 +81,57 @@ def call_taxi():
             return render_template('callingTaxi.html', error="Can't call taxi from the same location")
         try:
             distance = dijkstra_shortest_path(graph, current, desired)  # <--------- do this
-            return render_template('callingTaxi.html', success=f"Taxi's called will arrive in {distance} minutes.")
+            taxiClass = request.form.get('taxi_class')
+            price = pricing(taxiClass, distance)
+            selected_driver = Driver.query.order_by(func.random()).first()
+            return render_template('callingTaxi.html', success=f"{taxiClass} taxi is called. Price is {price} Your driver is {selected_driver.username}")
         except Exception as e:
             return render_template('callingTaxi.html', error="An error occurred: " + str(e))
 
     return render_template('callingTaxi.html')
+
+
+
+def pricing(taxi_class, minutes):
+
+    if minutes <= 0:
+        return "Invalid time"
+
+    pricing_structure = {
+        'Casual': [
+            (15, '15$'),
+            (30, '25$'),
+            (60, '40$'),
+            (float('inf'), '50$')
+        ],
+        'Business': [
+            (15, '20$'),
+            (30, '35$'),
+            (60, '50$'),
+            (float('inf'), '65$')
+        ],
+        'Business Plus': [
+            (15, '25$'),
+            (30, '45$'),
+            (60, '60$'),
+            (float('inf'), '80$')
+        ],
+        'Fancy': [
+            (15, '30$'),
+            (30, '50$'),
+            (60, '75$'),
+            (float('inf'), '100$')
+        ]
+    }
+
+    if taxi_class not in pricing_structure:
+        return "Invalid taxi class"
+
+    for max_minutes, price in pricing_structure[taxi_class]:
+        if minutes <= max_minutes:
+            return price
+
+    return "Pricing not available" 
 
 
 
